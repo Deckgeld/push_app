@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "774672688661",
+    "project_id": "curso-flutter-3bce8",
+    "storage_bucket": "curso-flutter-3bce8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:774672688661:android:ef6e07a721cb98ad78101c",
+        "android_client_info": {
+          "package_name": "com.cristianbarajas.push_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNZh38oR8fbxVytOLIsEz9XSfUEbOnmPQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
