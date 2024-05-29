@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:push_app/domain/entitites/push_message.dart';
 import 'package:push_app/firebase_options.dart';
 
 part 'notifications_event.dart';
@@ -13,8 +16,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
   print("Handling a background message: ${message.messageId}");
+  //Todo: Implemetar una BD local para guardar las notificaciones
 }
-
 
 class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -22,6 +25,8 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   NotificationsBloc() : super(const NotificationsState()) {
     // Escuchamos los eventos de cambio de estado de las notificaciones
     on<NotificationStatusChanged>(_notificationStatusChanged);
+    on<NotificationReceived>(_notificationReceived);
+
 
     // Vertificamos el estado actual de las notificaciones
     _initialStatusCheck();
@@ -46,6 +51,15 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     _getFCMToken();
   }
 
+  void _notificationReceived(
+      NotificationReceived event, Emitter<NotificationsState> emit) {
+    emit(
+      state.copyWith(
+        notifications: [ event.message, ...state.notifications],
+      ),
+    );
+  }
+
   //metodo que se encarga de verificar el estado actual de las notificaciones, es llamado en el constructor
   void _initialStatusCheck() async {
     final settings = await messaging.getNotificationSettings();
@@ -61,13 +75,25 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   }
 
   void _handleRemoteMessage(RemoteMessage message) {
-    print('Got a message whilst in the foreground!');
-    print('message: ${message.data}');
+    if (message.notification == null) return;
 
-    if (message.notification == null) return; 
+    final notification = PushMessage(
+      messageId: message.messageId
+        //Si messageId difetente a null, reemplazamos los caracteres : y % por un string vacio
+        ?.replaceAll(':', '').replaceAll('%', '')
+        //Si messageId es null, retornamos un string vacio
+        ?? '',
+      title: message.notification!.title ?? '', 
+      body: message.notification!.body ?? '', 
+      sentDate: message.sentTime ?? DateTime.now(),
+      data: message.data,
+      //platform se importa de dart:io
+      imageUrl: Platform.isAndroid
+          ? message.notification!.android?.imageUrl
+          : message.notification!.apple?.imageUrl,
+    );
     
-    print('Message also contained a notification: ${message.notification}');
-    
+    add(NotificationReceived(notification));
   }
 
   void _onForegroundMessage() {
