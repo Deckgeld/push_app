@@ -74,7 +74,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     }
   }
 
-  void _handleRemoteMessage(RemoteMessage message) {
+  void handleRemoteMessage(RemoteMessage message) {
     if (message.notification == null) return;
 
     final notification = PushMessage(
@@ -97,7 +97,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   }
 
   void _onForegroundMessage() {
-    FirebaseMessaging.onMessage.listen(_handleRemoteMessage);
+    FirebaseMessaging.onMessage.listen(handleRemoteMessage);
   }
 
   //Este metodo es llamado desde la UI al precionar un boton
@@ -114,5 +114,17 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 
     // Disparamos el evento de cambio de estado de las notificaciones
     add(NotificationStatusChanged(settings.authorizationStatus));
+  }
+
+  //Metodo para obtener un mensaje por su id
+  PushMessage? getMesssageById(String messageId) {
+    final exist = state.notifications.any(
+      (element) => element.messageId == messageId,
+    );
+    
+    if ( !exist ) return null;
+    return state.notifications.firstWhere(
+      (element) => element.messageId == messageId,
+    );
   }
 }
